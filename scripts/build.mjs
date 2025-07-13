@@ -1,6 +1,8 @@
 import { build } from 'esbuild';
+import { stylePlugin } from 'esbuild-style-plugin';
 import { rimraf } from 'rimraf';
 import fs from 'fs';
+import path from 'path';
 
 const isProduction = process.argv.includes('--production');
 
@@ -22,6 +24,16 @@ try {
     define: {
       'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
     },
+    plugins: [
+      stylePlugin({
+        postcss: {
+          plugins: [
+            require('tailwindcss'),
+            require('autoprefixer'),
+          ],
+        },
+      }),
+    ],
     loader: {
       '.css': 'css',
       '.png': 'dataurl',
