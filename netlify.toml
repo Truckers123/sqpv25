@@ -1,11 +1,8 @@
 [build]
   publish = "."
-  command = "echo 'Serving static files only'"
+  command = "echo 'Static files only - no build needed'"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[build.environment]
-  NODE_VERSION = "18"
