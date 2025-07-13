@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQPV CRM</title>
+    <title>SQPV CRM - Professional Property Investment Management</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -11,6 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-2px); transition: all 0.3s ease; }
+        .stat-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-card-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-card-purple { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
     </style>
 </head>
 <body>
@@ -20,7 +26,7 @@
         const { useState, useEffect, createContext, useContext } = React;
         const { createRoot } = ReactDOM;
 
-        // Simple Auth Context
+        // Enhanced Auth Context
         const AuthContext = createContext();
 
         function AuthProvider({ children }) {
@@ -30,12 +36,23 @@
             const login = (userData) => {
                 setUser(userData);
                 setIsAuthenticated(true);
+                localStorage.setItem('crmUser', JSON.stringify(userData));
             };
 
             const logout = () => {
                 setUser(null);
                 setIsAuthenticated(false);
+                localStorage.removeItem('crmUser');
             };
+
+            useEffect(() => {
+                const stored = localStorage.getItem('crmUser');
+                if (stored) {
+                    const userData = JSON.parse(stored);
+                    setUser(userData);
+                    setIsAuthenticated(true);
+                }
+            }, []);
 
             return (
                 <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
@@ -48,81 +65,304 @@
             return useContext(AuthContext);
         }
 
-        // Main App Component
-        function App() {
-            const { isAuthenticated, login } = useAuth();
+        // CRM Data Context
+        const CRMContext = createContext();
 
-            useEffect(() => {
-                // Auto-login for demo
-                if (!isAuthenticated) {
-                    login({
-                        id: '1',
-                        username: 'truckers',
-                        name: 'Alex "Big Truck" Foster',
-                        role: 'Managing Director'
-                    });
+        function CRMProvider({ children }) {
+            const [contacts, setContacts] = useState([
+                {
+                    id: 1,
+                    name: 'Emma Davies',
+                    email: 'emma.davies@email.com',
+                    phone: '+44 20 7123 4567',
+                    type: 'Residential Property Investment',
+                    budget: '£150K - £300K',
+                    score: 65,
+                    status: 'New Lead',
+                    lastContact: '2025-01-10',
+                    notes: 'Interested in buy-to-let properties in Manchester area',
+                    priority: 'Medium',
+                    source: 'Website'
+                },
+                {
+                    id: 2,
+                    name: 'Michael Roberts',
+                    email: 'michael.roberts@email.com',
+                    phone: '+44 20 7234 5678',
+                    type: 'Property Bonds',
+                    budget: '£250K - £500K',
+                    score: 72,
+                    status: 'Warm Lead',
+                    lastContact: '2025-01-12',
+                    notes: 'Looking for stable returns, risk-averse investor',
+                    priority: 'High',
+                    source: 'Referral'
+                },
+                {
+                    id: 3,
+                    name: 'James Anderson',
+                    email: 'james.anderson@email.com',
+                    phone: '+44 20 7345 6789',
+                    type: 'Off-Plan Property Investment',
+                    budget: '£1.5M - £2.5M',
+                    score: 95,
+                    status: 'Hot Lead',
+                    lastContact: '2025-01-13',
+                    notes: 'High-net-worth individual, interested in luxury developments',
+                    priority: 'Very High',
+                    source: 'LinkedIn'
+                },
+                {
+                    id: 4,
+                    name: 'Sarah Thompson',
+                    email: 'sarah.thompson@email.com',
+                    phone: '+44 20 7456 7890',
+                    type: 'Commercial Property Investment',
+                    budget: '£500K - £1M',
+                    score: 88,
+                    status: 'Client',
+                    lastContact: '2025-01-11',
+                    notes: 'Existing client, looking to expand portfolio',
+                    priority: 'High',
+                    source: 'Existing Client'
                 }
-            }, [isAuthenticated, login]);
+            ]);
 
-            if (!isAuthenticated) {
-                return (
-                    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                        <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full">
-                            <h1 className="text-2xl font-bold text-center mb-6">🏢 SQPV CRM Login</h1>
-                            <div className="space-y-4">
-                                <input 
-                                    type="text" 
-                                    placeholder="Username" 
-                                    className="w-full p-3 border rounded-lg"
-                                />
-                                <input 
-                                    type="password" 
-                                    placeholder="Password" 
-                                    className="w-full p-3 border rounded-lg"
-                                />
-                                <button 
-                                    onClick={() => login({ username: 'demo', name: 'Demo User' })}
-                                    className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
-                                >
-                                    Login
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
+            const [tasks, setTasks] = useState([
+                {
+                    id: 1,
+                    title: 'Follow up with Emma Davies',
+                    description: 'Send property portfolio and arrange viewing',
+                    dueDate: '2025-01-15',
+                    priority: 'High',
+                    status: 'Pending',
+                    assignedTo: 'Alex Foster',
+                    contactId: 1
+                },
+                {
+                    id: 2,
+                    title: 'Prepare investment proposal for James Anderson',
+                    description: 'Create detailed proposal for luxury development investment',
+                    dueDate: '2025-01-16',
+                    priority: 'Very High',
+                    status: 'In Progress',
+                    assignedTo: 'Alex Foster',
+                    contactId: 3
+                },
+                {
+                    id: 3,
+                    title: 'Schedule property viewing for Sarah Thompson',
+                    description: 'Arrange viewing for commercial property in London',
+                    dueDate: '2025-01-14',
+                    priority: 'Medium',
+                    status: 'Completed',
+                    assignedTo: 'Alex Foster',
+                    contactId: 4
+                }
+            ]);
 
-            return <Dashboard />;
+            const [meetings, setMeetings] = useState([
+                {
+                    id: 1,
+                    title: 'Investment Consultation - Emma Davies',
+                    date: '2025-01-15',
+                    time: '10:00',
+                    duration: '60 minutes',
+                    type: 'Initial Consultation',
+                    contactId: 1,
+                    location: 'Office Meeting Room'
+                },
+                {
+                    id: 2,
+                    title: 'Portfolio Review - James Anderson',
+                    date: '2025-01-16',
+                    time: '14:00',
+                    duration: '90 minutes',
+                    type: 'Client Meeting',
+                    contactId: 3,
+                    location: 'Client Office'
+                }
+            ]);
+
+            const addContact = (contact) => {
+                const newContact = {
+                    ...contact,
+                    id: Math.max(...contacts.map(c => c.id)) + 1
+                };
+                setContacts([...contacts, newContact]);
+            };
+
+            const updateContact = (id, updates) => {
+                setContacts(contacts.map(contact => 
+                    contact.id === id ? { ...contact, ...updates } : contact
+                ));
+            };
+
+            const deleteContact = (id) => {
+                setContacts(contacts.filter(contact => contact.id !== id));
+            };
+
+            const addTask = (task) => {
+                const newTask = {
+                    ...task,
+                    id: Math.max(...tasks.map(t => t.id)) + 1
+                };
+                setTasks([...tasks, newTask]);
+            };
+
+            const updateTask = (id, updates) => {
+                setTasks(tasks.map(task => 
+                    task.id === id ? { ...task, ...updates } : task
+                ));
+            };
+
+            const addMeeting = (meeting) => {
+                const newMeeting = {
+                    ...meeting,
+                    id: Math.max(...meetings.map(m => m.id)) + 1
+                };
+                setMeetings([...meetings, newMeeting]);
+            };
+
+            return (
+                <CRMContext.Provider value={{
+                    contacts, tasks, meetings,
+                    addContact, updateContact, deleteContact,
+                    addTask, updateTask, addMeeting
+                }}>
+                    {children}
+                </CRMContext.Provider>
+            );
         }
 
-        // Dashboard Component
+        function useCRM() {
+            return useContext(CRMContext);
+        }
+
+        // Enhanced Login Component
+        function LoginPage() {
+            const { login } = useAuth();
+            const [credentials, setCredentials] = useState({ username: '', password: '' });
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                
+                // Simulate API call
+                setTimeout(() => {
+                    login({
+                        id: '1',
+                        username: credentials.username,
+                        name: 'Alex "Big Truck" Foster',
+                        role: 'Managing Director',
+                        department: 'Property Investment',
+                        email: 'alex.foster@sqpv.com',
+                        avatar: 'https://pub-cdn.sider.ai/u/U09GHAWWJ2J/web-coder/68701197711d0815fd1b0005/resource/cd81b5ba-83b6-4958-bb4c-7d2aee9c764b.jpg'
+                    });
+                    setIsLoading(false);
+                }, 1000);
+            };
+
+            return (
+                <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">🏢 SQPV CRM</h1>
+                            <p className="text-gray-600">Property Investment Management System</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input
+                                    type="text"
+                                    value={credentials.username}
+                                    onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Enter your username"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input
+                                    type="password"
+                                    value={credentials.password}
+                                    onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50"
+                            >
+                                {isLoading ? 'Signing in...' : 'Sign In'}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center">
+                            <p className="text-sm text-gray-600">
+                                Demo: Use any username/password
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Enhanced Dashboard
         function Dashboard() {
             const { user, logout } = useAuth();
-            const [currentPage, setCurrentPage] = useState('home');
+            const { contacts, tasks, meetings } = useCRM();
+            const [currentPage, setCurrentPage] = useState('dashboard');
 
             const navigation = [
-                { id: 'home', name: 'Dashboard', icon: '🏠' },
+                { id: 'dashboard', name: 'Dashboard', icon: '📊' },
                 { id: 'contacts', name: 'Contacts', icon: '👥' },
                 { id: 'tasks', name: 'Tasks', icon: '✅' },
                 { id: 'calendar', name: 'Calendar', icon: '📅' },
-                { id: 'email', name: 'Email', icon: '📧' },
+                { id: 'analytics', name: 'Analytics', icon: '📈' },
                 { id: 'settings', name: 'Settings', icon: '⚙️' }
             ];
 
+            const stats = {
+                totalContacts: contacts.length,
+                activeLeads: contacts.filter(c => c.status !== 'Client').length,
+                clients: contacts.filter(c => c.status === 'Client').length,
+                conversionRate: Math.round((contacts.filter(c => c.status === 'Client').length / contacts.length) * 100),
+                avgLeadScore: Math.round(contacts.reduce((sum, c) => sum + c.score, 0) / contacts.length),
+                pendingTasks: tasks.filter(t => t.status === 'Pending').length,
+                completedTasks: tasks.filter(t => t.status === 'Completed').length,
+                upcomingMeetings: meetings.length
+            };
+
             return (
                 <div className="min-h-screen bg-gray-50">
-                    {/* Header */}
-                    <header className="bg-white shadow-sm border-b">
+                    {/* Enhanced Header */}
+                    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="flex justify-between items-center h-16">
                                 <div className="flex items-center">
-                                    <h1 className="text-xl font-semibold text-gray-900">🏢 SQPV CRM</h1>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                        🏢 SQPV CRM
+                                    </h1>
                                 </div>
                                 <div className="flex items-center space-x-4">
-                                    <span className="text-sm text-gray-700">Welcome, {user?.name}</span>
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                                            {user?.name?.charAt(0)}
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-700">Welcome, {user?.name}</span>
+                                    </div>
                                     <button 
                                         onClick={logout}
-                                        className="text-sm text-red-600 hover:text-red-700"
+                                        className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                         Logout
                                     </button>
@@ -132,22 +372,27 @@
                     </header>
 
                     <div className="flex">
-                        {/* Sidebar */}
-                        <nav className="w-64 bg-white shadow-sm h-screen">
-                            <div className="p-4">
+                        {/* Enhanced Sidebar */}
+                        <nav className="w-64 bg-white shadow-lg min-h-screen">
+                            <div className="p-6">
                                 <ul className="space-y-2">
                                     {navigation.map((item) => (
                                         <li key={item.id}>
                                             <button
                                                 onClick={() => setCurrentPage(item.id)}
-                                                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                                                     currentPage === item.id
-                                                        ? 'bg-blue-100 text-blue-700'
+                                                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                                                         : 'text-gray-700 hover:bg-gray-100'
                                                 }`}
                                             >
-                                                <span className="mr-3">{item.icon}</span>
+                                                <span className="text-lg mr-3">{item.icon}</span>
                                                 {item.name}
+                                                {item.id === 'tasks' && stats.pendingTasks > 0 && (
+                                                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                                                        {stats.pendingTasks}
+                                                    </span>
+                                                )}
                                             </button>
                                         </li>
                                     ))}
@@ -157,74 +402,135 @@
 
                         {/* Main Content */}
                         <main className="flex-1 p-8">
-                            <PageContent currentPage={currentPage} />
+                            <PageContent currentPage={currentPage} stats={stats} />
                         </main>
                     </div>
                 </div>
             );
         }
 
-        // Page Content Component
-        function PageContent({ currentPage }) {
+        // Page Content Router
+        function PageContent({ currentPage, stats }) {
             switch (currentPage) {
-                case 'home':
-                    return <HomePage />;
+                case 'dashboard':
+                    return <DashboardPage stats={stats} />;
                 case 'contacts':
                     return <ContactsPage />;
                 case 'tasks':
                     return <TasksPage />;
                 case 'calendar':
                     return <CalendarPage />;
-                case 'email':
-                    return <EmailPage />;
+                case 'analytics':
+                    return <AnalyticsPage stats={stats} />;
                 case 'settings':
                     return <SettingsPage />;
                 default:
-                    return <HomePage />;
+                    return <DashboardPage stats={stats} />;
             }
         }
 
-        // Home Page
-        function HomePage() {
+        // Enhanced Dashboard Page
+        function DashboardPage({ stats }) {
+            const { contacts, tasks } = useCRM();
+            
+            const recentActivity = [
+                { type: 'lead', message: 'New lead: Emma Davies added', time: '2 hours ago', icon: '👤' },
+                { type: 'meeting', message: 'Meeting scheduled with James Anderson', time: '4 hours ago', icon: '📅' },
+                { type: 'task', message: 'Task completed: Property viewing arranged', time: '1 day ago', icon: '✅' },
+                { type: 'client', message: 'Sarah Thompson contract signed', time: '2 days ago', icon: '📝' }
+            ];
+
             return (
-                <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+                <div className="space-y-8">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+                        <div className="flex space-x-3">
+                            <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all">
+                                + Add Contact
+                            </button>
+                            <button className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-teal-700 transition-all">
+                                + Create Task
+                            </button>
+                        </div>
+                    </div>
                     
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <h3 className="text-sm font-medium text-gray-500">Total Contacts</h3>
-                            <p className="text-2xl font-bold text-blue-600">4</p>
+                    {/* Enhanced Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="stat-card-blue text-white p-6 rounded-xl shadow-lg card-hover">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-medium opacity-90">Total Contacts</h3>
+                                    <p className="text-3xl font-bold">{stats.totalContacts}</p>
+                                </div>
+                                <div className="text-3xl opacity-80">👥</div>
+                            </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <h3 className="text-sm font-medium text-gray-500">Active Leads</h3>
-                            <p className="text-2xl font-bold text-green-600">3</p>
+                        
+                        <div className="stat-card-green text-white p-6 rounded-xl shadow-lg card-hover">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-medium opacity-90">Active Leads</h3>
+                                    <p className="text-3xl font-bold">{stats.activeLeads}</p>
+                                </div>
+                                <div className="text-3xl opacity-80">🔥</div>
+                            </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <h3 className="text-sm font-medium text-gray-500">Clients</h3>
-                            <p className="text-2xl font-bold text-purple-600">1</p>
+                        
+                        <div className="stat-card-purple text-white p-6 rounded-xl shadow-lg card-hover">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-medium opacity-90">Clients</h3>
+                                    <p className="text-3xl font-bold">{stats.clients}</p>
+                                </div>
+                                <div className="text-3xl opacity-80">⭐</div>
+                            </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <h3 className="text-sm font-medium text-gray-500">Conversion Rate</h3>
-                            <p className="text-2xl font-bold text-orange-600">25%</p>
+                        
+                        <div className="stat-card text-white p-6 rounded-xl shadow-lg card-hover">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-medium opacity-90">Conversion Rate</h3>
+                                    <p className="text-3xl font-bold">{stats.conversionRate}%</p>
+                                </div>
+                                <div className="text-3xl opacity-80">📈</div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Recent Activity */}
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                                <span className="text-sm text-gray-700">New lead: Emma Davies added</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Recent Activity */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h3>
+                            <div className="space-y-4">
+                                {recentActivity.map((activity, index) => (
+                                    <div key={index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div className="text-2xl">{activity.icon}</div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                                            <p className="text-xs text-gray-500">{activity.time}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                <span className="text-sm text-gray-700">James Anderson moved to Hot Leads</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
-                                <span className="text-sm text-gray-700">Sarah Thompson contract signed</span>
+                        </div>
+
+                        {/* Upcoming Tasks */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-6">Upcoming Tasks</h3>
+                            <div className="space-y-4">
+                                {tasks.filter(task => task.status === 'Pending').slice(0, 4).map((task) => (
+                                    <div key={task.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                            task.priority === 'Very High' ? 'bg-red-500' :
+                                            task.priority === 'High' ? 'bg-orange-500' :
+                                            task.priority === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'
+                                        }`}></div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                                            <p className="text-xs text-gray-500">Due: {task.dueDate}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -232,86 +538,621 @@
             );
         }
 
-        // Contacts Page
+        // Enhanced Contacts Page
         function ContactsPage() {
-            const contacts = [
-                {
-                    id: 1,
-                    name: 'Emma Davies',
-                    type: 'Residential Property Investment',
-                    budget: '£150K - £300K',
-                    score: 65,
-                    status: 'New Lead'
-                },
-                {
-                    id: 2,
-                    name: 'Michael Roberts',
-                    type: 'Property Bonds',
-                    budget: '£250K - £500K',
-                    score: 72,
-                    status: 'Warm Lead'
-                },
-                {
-                    id: 3,
-                    name: 'James Anderson',
-                    type: 'Off-Plan Property Investment',
-                    budget: '£1.5M - £2.5M',
-                    score: 95,
-                    status: 'Hot Lead'
-                },
-                {
-                    id: 4,
-                    name: 'Sarah Thompson',
-                    type: 'Commercial Property Investment',
-                    budget: '£500K - £1M',
-                    score: 88,
-                    status: 'Client'
-                }
-            ];
+            const { contacts, addContact, updateContact, deleteContact } = useCRM();
+            const [searchTerm, setSearchTerm] = useState('');
+            const [statusFilter, setStatusFilter] = useState('All');
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [selectedContact, setSelectedContact] = useState(null);
+
+            const filteredContacts = contacts.filter(contact => {
+                const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    contact.email.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesStatus = statusFilter === 'All' || contact.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            const statusColors = {
+                'New Lead': 'bg-blue-100 text-blue-800',
+                'Warm Lead': 'bg-yellow-100 text-yellow-800',
+                'Hot Lead': 'bg-red-100 text-red-800',
+                'Client': 'bg-green-100 text-green-800'
+            };
 
             return (
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-gray-900">Contacts</h2>
-                        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                        <h2 className="text-3xl font-bold text-gray-900">Contacts</h2>
+                        <button 
+                            onClick={() => setShowAddModal(true)}
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg"
+                        >
                             + Add Contact
                         </button>
                     </div>
 
+                    {/* Search and Filter */}
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search contacts..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="All">All Status</option>
+                            <option value="New Lead">New Lead</option>
+                            <option value="Warm Lead">Warm Lead</option>
+                            <option value="Hot Lead">Hot Lead</option>
+                            <option value="Client">Client</option>
+                        </select>
+                    </div>
+
+                    {/* Contacts Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {contacts.map((contact) => (
-                            <div key={contact.id} className="bg-white p-6 rounded-lg shadow">
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-semibold text-gray-900">{contact.name}</h3>
-                                    <span className={`px-2 py-1 text-xs rounded-full ${
-                                        contact.status === 'Client' ? 'bg-green-100 text-green-800' :
-                                        contact.status === 'Hot Lead' ? 'bg-red-100 text-red-800' :
-                                        contact.status === 'Warm Lead' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-blue-100 text-blue-800'
-                                    }`}>
+                        {filteredContacts.map((contact) => (
+                            <div key={contact.id} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all card-hover">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">{contact.name}</h3>
+                                        <p className="text-sm text-gray-600">{contact.email}</p>
+                                        <p className="text-sm text-gray-600">{contact.phone}</p>
+                                    </div>
+                                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusColors[contact.status]}`}>
                                         {contact.status}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-2">{contact.type}</p>
-                                <p className="text-sm text-gray-600 mb-2">{contact.budget}</p>
-                                <div className="flex items-center">
-                                    <span className="text-sm text-gray-500 mr-2">Score:</span>
-                                    <span className="font-semibold">{contact.score}</span>
+                                
+                                <div className="space-y-2 mb-4">
+                                    <p className="text-sm text-gray-700"><strong>Type:</strong> {contact.type}</p>
+                                    <p className="text-sm text-gray-700"><strong>Budget:</strong> {contact.budget}</p>
+                                    <p className="text-sm text-gray-700"><strong>Priority:</strong> {contact.priority}</p>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm text-gray-500">Score:</span>
+                                        <div className="flex items-center">
+                                            <span className="text-lg font-bold text-blue-600">{contact.score}</span>
+                                            <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                                <div 
+                                                    className="bg-blue-600 h-2 rounded-full" 
+                                                    style={{width: `${contact.score}%`}}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedContact(contact)}
+                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                    >
+                                        View Details
+                                    </button>
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Add Contact Modal */}
+                    {showAddModal && (
+                        <AddContactModal 
+                            onClose={() => setShowAddModal(false)}
+                            onAdd={addContact}
+                        />
+                    )}
+
+                    {/* Contact Details Modal */}
+                    {selectedContact && (
+                        <ContactDetailsModal 
+                            contact={selectedContact}
+                            onClose={() => setSelectedContact(null)}
+                            onUpdate={updateContact}
+                            onDelete={deleteContact}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Add Contact Modal
+        function AddContactModal({ onClose, onAdd }) {
+            const [formData, setFormData] = useState({
+                name: '',
+                email: '',
+                phone: '',
+                type: 'Residential Property Investment',
+                budget: '',
+                status: 'New Lead',
+                priority: 'Medium',
+                source: 'Website',
+                notes: ''
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd({
+                    ...formData,
+                    score: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
+                    lastContact: new Date().toISOString().split('T')[0]
+                });
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">Add New Contact</h3>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Investment Type</label>
+                                <select
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>Residential Property Investment</option>
+                                    <option>Commercial Property Investment</option>
+                                    <option>Off-Plan Property Investment</option>
+                                    <option>Property Bonds</option>
+                                    <option>Buy-to-Let</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
+                                <input
+                                    type="text"
+                                    value={formData.budget}
+                                    onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="e.g., £100K - £500K"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>New Lead</option>
+                                    <option>Warm Lead</option>
+                                    <option>Hot Lead</option>
+                                    <option>Client</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                <select
+                                    value={formData.priority}
+                                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                    <option>Very High</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="3"
+                                    placeholder="Additional notes about this contact..."
+                                />
+                            </div>
+
+                            <div className="flex space-x-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                                >
+                                    Add Contact
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             );
         }
 
-        // Tasks Page
+        // Contact Details Modal
+        function ContactDetailsModal({ contact, onClose, onUpdate, onDelete }) {
+            const [isEditing, setIsEditing] = useState(false);
+            const [formData, setFormData] = useState(contact);
+
+            const handleUpdate = (e) => {
+                e.preventDefault();
+                onUpdate(contact.id, formData);
+                setIsEditing(false);
+            };
+
+            const handleDelete = () => {
+                if (confirm('Are you sure you want to delete this contact?')) {
+                    onDelete(contact.id);
+                    onClose();
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Contact Details</h3>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                    {isEditing ? 'Cancel' : 'Edit'}
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    onClick={onClose}
+                                    className="px-3 py-1 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+
+                        {isEditing ? (
+                            <form onSubmit={handleUpdate} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                        <input
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select
+                                            value={formData.status}
+                                            onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        >
+                                            <option>New Lead</option>
+                                            <option>Warm Lead</option>
+                                            <option>Hot Lead</option>
+                                            <option>Client</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                    <textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        rows="4"
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+                                >
+                                    Update Contact
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900 mb-2">Contact Information</h4>
+                                        <div className="space-y-2">
+                                            <p><strong>Name:</strong> {contact.name}</p>
+                                            <p><strong>Email:</strong> {contact.email}</p>
+                                            <p><strong>Phone:</strong> {contact.phone}</p>
+                                            <p><strong>Status:</strong> <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">{contact.status}</span></p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900 mb-2">Investment Details</h4>
+                                        <div className="space-y-2">
+                                            <p><strong>Type:</strong> {contact.type}</p>
+                                            <p><strong>Budget:</strong> {contact.budget}</p>
+                                            <p><strong>Priority:</strong> {contact.priority}</p>
+                                            <p><strong>Score:</strong> {contact.score}/100</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold text-gray-900 mb-2">Notes</h4>
+                                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{contact.notes || 'No notes available'}</p>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold text-gray-900 mb-2">Additional Information</h4>
+                                    <div className="space-y-2">
+                                        <p><strong>Source:</strong> {contact.source}</p>
+                                        <p><strong>Last Contact:</strong> {contact.lastContact}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Enhanced Tasks Page
         function TasksPage() {
+            const { tasks, addTask, updateTask } = useCRM();
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [filter, setFilter] = useState('All');
+
+            const filteredTasks = tasks.filter(task => 
+                filter === 'All' || task.status === filter
+            );
+
+            const statusColors = {
+                'Pending': 'bg-yellow-100 text-yellow-800',
+                'In Progress': 'bg-blue-100 text-blue-800',
+                'Completed': 'bg-green-100 text-green-800'
+            };
+
+            const priorityColors = {
+                'Low': 'bg-green-500',
+                'Medium': 'bg-yellow-500',
+                'High': 'bg-orange-500',
+                'Very High': 'bg-red-500'
+            };
+
+            const handleStatusChange = (taskId, newStatus) => {
+                updateTask(taskId, { status: newStatus });
+            };
+
             return (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <p className="text-gray-600">Task management coming soon...</p>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-3xl font-bold text-gray-900">Tasks</h2>
+                        <button 
+                            onClick={() => setShowAddModal(true)}
+                            className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-teal-700 transition-all shadow-lg"
+                        >
+                            + Create Task
+                        </button>
+                    </div>
+
+                    {/* Filter */}
+                    <div className="flex space-x-4">
+                        {['All', 'Pending', 'In Progress', 'Completed'].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setFilter(status)}
+                                className={`px-4 py-2 rounded-lg transition-colors ${
+                                    filter === status 
+                                        ? 'bg-blue-500 text-white' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tasks List */}
+                    <div className="space-y-4">
+                        {filteredTasks.map((task) => (
+                            <div key={task.id} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`}></div>
+                                        <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
+                                            {task.status}
+                                        </span>
+                                        <select
+                                            value={task.status}
+                                            onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                            className="text-sm border border-gray-300 rounded-lg px-2 py-1"
+                                        >
+                                            <option value="Pending">Pending</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <p className="text-gray-700 mb-4">{task.description}</p>
+                                
+                                <div className="flex justify-between items-center text-sm text-gray-500">
+                                    <span>Due: {task.dueDate}</span>
+                                    <span>Priority: {task.priority}</span>
+                                    <span>Assigned to: {task.assignedTo}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Add Task Modal */}
+                    {showAddModal && (
+                        <AddTaskModal 
+                            onClose={() => setShowAddModal(false)}
+                            onAdd={addTask}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Add Task Modal
+        function AddTaskModal({ onClose, onAdd }) {
+            const [formData, setFormData] = useState({
+                title: '',
+                description: '',
+                dueDate: '',
+                priority: 'Medium',
+                status: 'Pending',
+                assignedTo: 'Alex Foster'
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd(formData);
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">Create New Task</h3>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="3"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                <input
+                                    type="date"
+                                    value={formData.dueDate}
+                                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                <select
+                                    value={formData.priority}
+                                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                    <option>Very High</option>
+                                </select>
+                            </div>
+
+                            <div className="flex space-x-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-teal-700 transition-all"
+                                >
+                                    Create Task
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             );
@@ -319,23 +1160,250 @@
 
         // Calendar Page
         function CalendarPage() {
+            const { meetings, addMeeting } = useCRM();
+            const [showAddModal, setShowAddModal] = useState(false);
+
             return (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Calendar</h2>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <p className="text-gray-600">Calendar functionality coming soon...</p>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-3xl font-bold text-gray-900">Calendar</h2>
+                        <button 
+                            onClick={() => setShowAddModal(true)}
+                            className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg"
+                        >
+                            + Schedule Meeting
+                        </button>
+                    </div>
+
+                    {/* Upcoming Meetings */}
+                    <div className="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-6">Upcoming Meetings</h3>
+                        <div className="space-y-4">
+                            {meetings.map((meeting) => (
+                                <div key={meeting.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900">{meeting.title}</h4>
+                                        <p className="text-sm text-gray-600">{meeting.date} at {meeting.time}</p>
+                                        <p className="text-sm text-gray-500">{meeting.location}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                            {meeting.type}
+                                        </span>
+                                        <p className="text-sm text-gray-500 mt-1">{meeting.duration}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Add Meeting Modal */}
+                    {showAddModal && (
+                        <AddMeetingModal 
+                            onClose={() => setShowAddModal(false)}
+                            onAdd={addMeeting}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Add Meeting Modal
+        function AddMeetingModal({ onClose, onAdd }) {
+            const [formData, setFormData] = useState({
+                title: '',
+                date: '',
+                time: '',
+                duration: '60 minutes',
+                type: 'Initial Consultation',
+                location: 'Office Meeting Room'
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd(formData);
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">Schedule Meeting</h3>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                    <input
+                                        type="time"
+                                        value={formData.time}
+                                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                                <select
+                                    value={formData.duration}
+                                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>30 minutes</option>
+                                    <option>60 minutes</option>
+                                    <option>90 minutes</option>
+                                    <option>120 minutes</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <select
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option>Initial Consultation</option>
+                                    <option>Client Meeting</option>
+                                    <option>Property Viewing</option>
+                                    <option>Follow-up</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                <input
+                                    type="text"
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex space-x-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white py-2 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all"
+                                >
+                                    Schedule Meeting
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             );
         }
 
-        // Email Page
-        function EmailPage() {
+        // Analytics Page
+        function AnalyticsPage({ stats }) {
+            const { contacts } = useCRM();
+            
+            const investmentTypes = contacts.reduce((acc, contact) => {
+                acc[contact.type] = (acc[contact.type] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusDistribution = contacts.reduce((acc, contact) => {
+                acc[contact.status] = (acc[contact.status] || 0) + 1;
+                return acc;
+            }, {});
+
             return (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Email</h2>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <p className="text-gray-600">Email system coming soon...</p>
+                    <h2 className="text-3xl font-bold text-gray-900">Analytics</h2>
+                    
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Average Lead Score</h3>
+                            <p className="text-3xl font-bold text-blue-600">{stats.avgLeadScore}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Conversion Rate</h3>
+                            <p className="text-3xl font-bold text-green-600">{stats.conversionRate}%</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Pending Tasks</h3>
+                            <p className="text-3xl font-bold text-orange-600">{stats.pendingTasks}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Completed Tasks</h3>
+                            <p className="text-3xl font-bold text-purple-600">{stats.completedTasks}</p>
+                        </div>
+                    </div>
+
+                    {/* Charts */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Investment Types</h3>
+                            <div className="space-y-3">
+                                {Object.entries(investmentTypes).map(([type, count]) => (
+                                    <div key={type} className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-700">{type}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                                                <div 
+                                                    className="bg-blue-500 h-2 rounded-full" 
+                                                    style={{width: `${(count / contacts.length) * 100}%`}}
+                                                ></div>
+                                            </div>
+                                            <span className="text-sm font-medium text-gray-900">{count}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Status Distribution</h3>
+                            <div className="space-y-3">
+                                {Object.entries(statusDistribution).map(([status, count]) => (
+                                    <div key={status} className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-700">{status}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                                                <div 
+                                                    className="bg-green-500 h-2 rounded-full" 
+                                                    style={{width: `${(count / contacts.length) * 100}%`}}
+                                                ></div>
+                                            </div>
+                                            <span className="text-sm font-medium text-gray-900">{count}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
@@ -343,26 +1411,150 @@
 
         // Settings Page
         function SettingsPage() {
+            const { user, logout } = useAuth();
+            const [settings, setSettings] = useState({
+                emailNotifications: true,
+                smsNotifications: false,
+                darkMode: false,
+                language: 'English'
+            });
+
+            const handleSettingChange = (key, value) => {
+                setSettings(prev => ({
+                    ...prev,
+                    [key]: value
+                }));
+            };
+
             return (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <p className="text-gray-600">Settings panel coming soon...</p>
+                    <h2 className="text-3xl font-bold text-gray-900">Settings</h2>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* User Profile */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">User Profile</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        value={user?.name || ''}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        readOnly
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                    <input
+                                        type="text"
+                                        value={user?.role || ''}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        readOnly
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                                    <input
+                                        type="text"
+                                        value={user?.department || ''}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Notification Settings */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Notifications</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium text-gray-700">Email Notifications</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.emailNotifications}
+                                        onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium text-gray-700">SMS Notifications</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.smsNotifications}
+                                        onChange={(e) => handleSettingChange('smsNotifications', e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium text-gray-700">Dark Mode</label>
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.darkMode}
+                                        onChange={(e) => handleSettingChange('darkMode', e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                                    <select
+                                        value={settings.language}
+                                        onChange={(e) => handleSettingChange('language', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option>English</option>
+                                        <option>Spanish</option>
+                                        <option>French</option>
+                                        <option>German</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-red-200">
+                        <h3 className="text-lg font-semibold text-red-900 mb-4">Danger Zone</h3>
+                        <div className="space-y-3">
+                            <button className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                Reset All Data
+                            </button>
+                            <button 
+                                onClick={logout}
+                                className="w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
         }
 
-        // Initialize the app
+        // Main App Component
+        function App() {
+            const { isAuthenticated } = useAuth();
+
+            if (!isAuthenticated) {
+                return <LoginPage />;
+            }
+
+            return <Dashboard />;
+        }
+
+        // Root App with Providers
         function MainApp() {
             return (
                 <AuthProvider>
-                    <App />
+                    <CRMProvider>
+                        <App />
+                    </CRMProvider>
                 </AuthProvider>
             );
         }
 
-        // Render the app
+        // Initialize the app
         const root = createRoot(document.getElementById('root'));
         root.render(<MainApp />);
     </script>
