@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "scripts/build.mjs",
+      "use": "@vercel/node"
+    }
+  ],
+  "buildCommand": "node scripts/build.mjs --production",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "devCommand": "node scripts/build.mjs",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
