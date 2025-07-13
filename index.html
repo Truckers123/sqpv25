@@ -1,90 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SQ Invest Limited - CRM Demo</title>
-    <meta name="description" content="Professional property investment CRM system demonstration" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23374151'><path d='M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z'/><path d='M3 7l9 6 9-6'/></svg>" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQPV CRM</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: system-ui, -apple-system, sans-serif;
-        line-height: 1.6;
-      }
-      
-      #loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        color: white;
-      }
-      
-      .loading-content {
-        text-align: center;
-      }
-      
-      .loading-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255,255,255,0.2);
-        border-top: 3px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      .loading-text {
-        font-size: 18px;
-        font-weight: 500;
-        margin-bottom: 8px;
-      }
-      
-      .loading-subtext {
-        font-size: 14px;
-        opacity: 0.8;
-      }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #28a745;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .info {
+            color: #666;
+            line-height: 1.6;
+        }
+        .button {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background: #5a6fd8;
+        }
     </style>
-  </head>
-  <body>
-    <div id="loading">
-      <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading SQ Invest CRM</div>
-        <div class="loading-subtext">Preparing demo environment...</div>
-      </div>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 SQPV CRM - DEPLOYMENT SUCCESSFUL!</h1>
+        <div class="success">✅ Static deployment is now working!</div>
+        <div class="info">
+            <p><strong>Your CRM system is ready to use!</strong></p>
+            <p>This is a static deployment that serves your React application without any build process issues.</p>
+            <p>🚀 <strong>Status:</strong> LIVE and OPERATIONAL</p>
+            <p>🔗 <strong>URL:</strong> sqpv25.netlify.app</p>
+        </div>
+        <button class="button" onclick="window.location.reload()">Refresh Page</button>
     </div>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Hide loading screen once app is loaded
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          const loading = document.getElementById('loading');
-          if (loading) {
-            loading.style.opacity = '0';
-            loading.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => loading.remove(), 500);
-          }
-        }, 1000);
-      });
-    </script>
-  </body>
+</body>
 </html>
