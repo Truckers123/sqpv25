@@ -1,20 +1,15 @@
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "scripts/build.mjs",
-      "use": "@vercel/node"
-    }
-  ],
-  "buildCommand": "node scripts/build.mjs --production",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "devCommand": "node scripts/build.mjs",
-  "framework": null,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+PS C:\Users\Lenovo\Desktop\SQPV CRM> git commit -m "Advanced CRM optimized for Vercel - ready to deploy!"
+[main 9a725d6] Advanced CRM optimized for Vercel - ready to deploy!
+ 1 file changed, 8 deletions(-)
+ delete mode 100644 netlify.toml
+PS C:\Users\Lenovo\Desktop\SQPV CRM> git push origin main
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (2/2), 263 bytes | 263.00 KiB/s, done.
+Total 2 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/Truckers123/sqpv25.git
+   bd3a272..9a725d6  main -> main
+PS C:\Users\Lenovo\Desktop\SQPV CRM>
