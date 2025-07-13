@@ -4,64 +4,367 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQPV CRM</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-            max-width: 600px;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .success {
-            color: #28a745;
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        .info {
-            color: #666;
-            line-height: 1.6;
-        }
-        .button {
-            background: #667eea;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .button:hover {
-            background: #5a6fd8;
-        }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 SQPV CRM - DEPLOYMENT SUCCESSFUL!</h1>
-        <div class="success">✅ Static deployment is now working!</div>
-        <div class="info">
-            <p><strong>Your CRM system is ready to use!</strong></p>
-            <p>This is a static deployment that serves your React application without any build process issues.</p>
-            <p>🚀 <strong>Status:</strong> LIVE and OPERATIONAL</p>
-            <p>🔗 <strong>URL:</strong> sqpv25.netlify.app</p>
-        </div>
-        <button class="button" onclick="window.location.reload()">Refresh Page</button>
-    </div>
+    <div id="root"></div>
+    
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, createContext, useContext } = React;
+        const { createRoot } = ReactDOM;
+
+        // Simple Auth Context
+        const AuthContext = createContext();
+
+        function AuthProvider({ children }) {
+            const [user, setUser] = useState(null);
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+            const login = (userData) => {
+                setUser(userData);
+                setIsAuthenticated(true);
+            };
+
+            const logout = () => {
+                setUser(null);
+                setIsAuthenticated(false);
+            };
+
+            return (
+                <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+                    {children}
+                </AuthContext.Provider>
+            );
+        }
+
+        function useAuth() {
+            return useContext(AuthContext);
+        }
+
+        // Main App Component
+        function App() {
+            const { isAuthenticated, login } = useAuth();
+
+            useEffect(() => {
+                // Auto-login for demo
+                if (!isAuthenticated) {
+                    login({
+                        id: '1',
+                        username: 'truckers',
+                        name: 'Alex "Big Truck" Foster',
+                        role: 'Managing Director'
+                    });
+                }
+            }, [isAuthenticated, login]);
+
+            if (!isAuthenticated) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full">
+                            <h1 className="text-2xl font-bold text-center mb-6">🏢 SQPV CRM Login</h1>
+                            <div className="space-y-4">
+                                <input 
+                                    type="text" 
+                                    placeholder="Username" 
+                                    className="w-full p-3 border rounded-lg"
+                                />
+                                <input 
+                                    type="password" 
+                                    placeholder="Password" 
+                                    className="w-full p-3 border rounded-lg"
+                                />
+                                <button 
+                                    onClick={() => login({ username: 'demo', name: 'Demo User' })}
+                                    className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
+                                >
+                                    Login
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return <Dashboard />;
+        }
+
+        // Dashboard Component
+        function Dashboard() {
+            const { user, logout } = useAuth();
+            const [currentPage, setCurrentPage] = useState('home');
+
+            const navigation = [
+                { id: 'home', name: 'Dashboard', icon: '🏠' },
+                { id: 'contacts', name: 'Contacts', icon: '👥' },
+                { id: 'tasks', name: 'Tasks', icon: '✅' },
+                { id: 'calendar', name: 'Calendar', icon: '📅' },
+                { id: 'email', name: 'Email', icon: '📧' },
+                { id: 'settings', name: 'Settings', icon: '⚙️' }
+            ];
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header */}
+                    <header className="bg-white shadow-sm border-b">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center h-16">
+                                <div className="flex items-center">
+                                    <h1 className="text-xl font-semibold text-gray-900">🏢 SQPV CRM</h1>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <span className="text-sm text-gray-700">Welcome, {user?.name}</span>
+                                    <button 
+                                        onClick={logout}
+                                        className="text-sm text-red-600 hover:text-red-700"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="flex">
+                        {/* Sidebar */}
+                        <nav className="w-64 bg-white shadow-sm h-screen">
+                            <div className="p-4">
+                                <ul className="space-y-2">
+                                    {navigation.map((item) => (
+                                        <li key={item.id}>
+                                            <button
+                                                onClick={() => setCurrentPage(item.id)}
+                                                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                                                    currentPage === item.id
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'text-gray-700 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                <span className="mr-3">{item.icon}</span>
+                                                {item.name}
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </nav>
+
+                        {/* Main Content */}
+                        <main className="flex-1 p-8">
+                            <PageContent currentPage={currentPage} />
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        // Page Content Component
+        function PageContent({ currentPage }) {
+            switch (currentPage) {
+                case 'home':
+                    return <HomePage />;
+                case 'contacts':
+                    return <ContactsPage />;
+                case 'tasks':
+                    return <TasksPage />;
+                case 'calendar':
+                    return <CalendarPage />;
+                case 'email':
+                    return <EmailPage />;
+                case 'settings':
+                    return <SettingsPage />;
+                default:
+                    return <HomePage />;
+            }
+        }
+
+        // Home Page
+        function HomePage() {
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+                    
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-sm font-medium text-gray-500">Total Contacts</h3>
+                            <p className="text-2xl font-bold text-blue-600">4</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-sm font-medium text-gray-500">Active Leads</h3>
+                            <p className="text-2xl font-bold text-green-600">3</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-sm font-medium text-gray-500">Clients</h3>
+                            <p className="text-2xl font-bold text-purple-600">1</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-sm font-medium text-gray-500">Conversion Rate</h3>
+                            <p className="text-2xl font-bold text-orange-600">25%</p>
+                        </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span className="text-sm text-gray-700">New lead: Emma Davies added</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span className="text-sm text-gray-700">James Anderson moved to Hot Leads</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                                <span className="text-sm text-gray-700">Sarah Thompson contract signed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Contacts Page
+        function ContactsPage() {
+            const contacts = [
+                {
+                    id: 1,
+                    name: 'Emma Davies',
+                    type: 'Residential Property Investment',
+                    budget: '£150K - £300K',
+                    score: 65,
+                    status: 'New Lead'
+                },
+                {
+                    id: 2,
+                    name: 'Michael Roberts',
+                    type: 'Property Bonds',
+                    budget: '£250K - £500K',
+                    score: 72,
+                    status: 'Warm Lead'
+                },
+                {
+                    id: 3,
+                    name: 'James Anderson',
+                    type: 'Off-Plan Property Investment',
+                    budget: '£1.5M - £2.5M',
+                    score: 95,
+                    status: 'Hot Lead'
+                },
+                {
+                    id: 4,
+                    name: 'Sarah Thompson',
+                    type: 'Commercial Property Investment',
+                    budget: '£500K - £1M',
+                    score: 88,
+                    status: 'Client'
+                }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-900">Contacts</h2>
+                        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                            + Add Contact
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {contacts.map((contact) => (
+                            <div key={contact.id} className="bg-white p-6 rounded-lg shadow">
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="font-semibold text-gray-900">{contact.name}</h3>
+                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                        contact.status === 'Client' ? 'bg-green-100 text-green-800' :
+                                        contact.status === 'Hot Lead' ? 'bg-red-100 text-red-800' :
+                                        contact.status === 'Warm Lead' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-blue-100 text-blue-800'
+                                    }`}>
+                                        {contact.status}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-2">{contact.type}</p>
+                                <p className="text-sm text-gray-600 mb-2">{contact.budget}</p>
+                                <div className="flex items-center">
+                                    <span className="text-sm text-gray-500 mr-2">Score:</span>
+                                    <span className="font-semibold">{contact.score}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Tasks Page
+        function TasksPage() {
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <p className="text-gray-600">Task management coming soon...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Calendar Page
+        function CalendarPage() {
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Calendar</h2>
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <p className="text-gray-600">Calendar functionality coming soon...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Email Page
+        function EmailPage() {
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Email</h2>
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <p className="text-gray-600">Email system coming soon...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Settings Page
+        function SettingsPage() {
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <p className="text-gray-600">Settings panel coming soon...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Initialize the app
+        function MainApp() {
+            return (
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            );
+        }
+
+        // Render the app
+        const root = createRoot(document.getElementById('root'));
+        root.render(<MainApp />);
+    </script>
 </body>
 </html>
